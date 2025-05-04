@@ -148,14 +148,26 @@ class ConfigManager:
             Słownik z konfiguracją z pliku.
         """
         if not self.config_file.exists():
+            import logging
+            logging.warning(f"Plik konfiguracyjny nie istnieje: {self.config_file}. Używam domyślnej konfiguracji.")
             return {}
             
         try:
             with open(self.config_file, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f) or {}
+                config = yaml.safe_load(f)
+                if config is None:
+                    import logging
+                    logging.warning(f"Plik konfiguracyjny {self.config_file} jest pusty. Używam domyślnej konfiguracji.")
+                    return {}
+                return config
+        except yaml.YAMLError as e:
+            import logging
+            logging.error(f"Błąd parsowania YAML w pliku {self.config_file}: {e}")
+            raise ValueError(f"Nieprawidłowy format YAML w pliku konfiguracyjnym: {e}")
         except Exception as e:
-            print(f"Błąd ładowania konfiguracji z {self.config_file}: {e}")
-            return {}
+            import logging
+            logging.error(f"Błąd ładowania konfiguracji z {self.config_file}: {e}")
+            raise IOError(f"Nie można załadować pliku konfiguracyjnego: {e}")
     
     def _load_from_env(self) -> Dict[str, Any]:
         """
