@@ -1,0 +1,63 @@
+# Konfiguracja OSINT Super Kombajn
+version: "0.2.0"
+
+# Ustawienia logowania
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "json"  # json lub text
+  max_files: 10
+  max_size_mb: 10
+
+# Konfiguracja narzędzi
+tools:
+  sherlock:
+    timeout: 300
+    max_retries: 3
+    priority: 1
+  
+  phoneinfoga:
+    timeout: 300
+    max_retries: 3
+    priority: 2
+  
+  maigret:
+    timeout: 300
+    max_retries: 3
+    priority: 1
+  
+  exiftool:
+    timeout: 300
+    max_retries: 3
+    priority: 2
+  
+  holehe:
+    timeout: 300
+    max_retries: 3
+    priority: 1
+
+# Konfiguracja API
+api:
+  ai:
+    enabled: false
+    provider: "openrouter"
+    model: "anthropic/claude-3-opus-20240229"
+    rate_limit: 5
+    retry_attempts: 3
+
+# Ustawienia wydajności
+performance:
+  max_workers: 5
+  cache_ttl: 3600
+  parallel_tools: true
+
+# Ustawienia bezpieczeństwa
+security:
+  sanitize_inputs: true
+  rate_limiting: true
+  mask_sensitive_data: true
+
+# Ustawienia raportów
+report:
+  default_format: "html"
+  include_metadata: true
+  include_ai_analysis: true
