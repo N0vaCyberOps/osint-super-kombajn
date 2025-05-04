@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🕵️ OSINT Super Kombajn
 
 **OSINT Super Kombajn** to profesjonalny, modułowy system analizy OSINT oparty na Pythonie 3.10+, integrujący klasyczne narzędzia OSINT i sztuczną inteligencję (AI). Przeznaczony do szybkiego i efektywnego zbierania danych z wielu źródeł oraz generowania czytelnych raportów w formacie HTML, JSON i TXT.
@@ -123,3 +124,7 @@ pytest tests/
 ---
 
 © 2025 | Wszelkie prawa zastrzeżone.
+=======
+# osint-super-kombajn
+Profesjonalny modułowy system analizy OSINT oparty na Pythonie 3.10+
+>>>>>>> 33df76787b5b8d41a49da5be4d8f29af7ea37c68
