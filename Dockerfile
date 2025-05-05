@@ -1,46 +1,21 @@
-FROM python:3.10-slim
+FROM python:3.11-slim@sha256:75a17dd6f00b277975715fc094c4a1570d512708de6bb4c5dc130814813ebfe4
 
-# Ustaw zmienne środowiskowe
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Katalog roboczy
 WORKDIR /app
 
-# Instalacja zależności systemowych
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    exiftool \
-    python3-dev \
-    gcc \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Kopiowanie plików projektu
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
 
-# Kopiuj pliki projektu
-COPY . /app/
+# Instalacja zależności
+RUN pip install --no-cache-dir -e .
 
-# Instaluj zależności Python
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Utworzenie katalogów na wyniki i logi
+RUN mkdir -p results logs
 
-# Pobierz narzędzia OSINT
-RUN mkdir -p /app/osint_tools/sherlock && \
-    git clone https://github.com/sherlock-project/sherlock.git /app/osint_tools/sherlock && \
-    cd /app/osint_tools/sherlock && \
-    pip install -r requirements.txt
+# Ustawienie zmiennych środowiskowych
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
-RUN mkdir -p /app/osint_tools/maigret && \
-    git clone https://github.com/soxoj/maigret.git /app/osint_tools/maigret && \
-    cd /app/osint_tools/maigret && \
-    pip install -e .
-
-RUN mkdir -p /app/osint_tools/holehe && \
-    git clone https://github.com/megadose/holehe.git /app/osint_tools/holehe && \
-    cd /app/osint_tools/holehe && \
-    pip install -e .
-
-# Utwórz katalogi dla danych
-RUN mkdir -p /app/osint_tools/logs /app/osint_tools/results
-
-# Entrypoint
-ENTRYPOINT ["python", "main.py"]
+# Uruchomienie aplikacji
+ENTRYPOINT ["python", "-m", "osint_super_kombajn.main"]
+CMD ["--help"]

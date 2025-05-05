@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Super Kombajn - Raport</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .section h2 {
+            color: #3498db;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .subsection {
+            margin: 15px 0;
+            padding-left: 15px;
+            border-left: 3px solid #3498db;
+        }
+        .subsection h3 {
+            color: #2980b9;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .found {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .not-found {
+            color: #e74c3c;
+        }
+        .metadata {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .metadata-item {
+            flex: 1 0 30%;
+            margin: 5px;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-radius: 3px;
+        }
+        .metadata-key {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .ai-analysis {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .ai-analysis h3 {
+            color: #8e44ad;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>OSINT Super Kombajn - Raport analizy</h1>
+            <div class="timestamp">Wygenerowano: {{ timestamp }}</div>
+        </header>
+
+        <main>
+            {% if username_data %}
+            <div class="section">
+                <h2>Analiza nazwy użytkownika: {{ username_data.username }}</h2>
+                
+                {% if username_data.sherlock %}
+                <div class="subsection">
+                    <h3>Wyniki Sherlock</h3>
+                    <p>Znaleziono konta na {{ username_data.sherlock.found|length }} platformach:</p>
+                    <ul>
+                        {% for platform in username_data.sherlock.found %}
+                        <li class="found">{{ platform }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if username_data.maigret %}
+                <div class="subsection">
+                    <h3>Wyniki Maigret</h3>
+                    <p>Znaleziono konta na {{ username_data.maigret.found|length }} platformach:</p>
+                    <ul>
+                        {% for platform in username_data.maigret.found %}
+                        <li class="found">{{ platform }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if phone_data %}
+            <div class="section">
+                <h2>Analiza numeru telefonu: {{ phone_data.phone }}</h2>
+                
+                {% if phone_data.phoneinfoga %}
+                <div class="subsection">
+                    <h3>Wyniki PhoneInfoga</h3>
+                    <table>
+                        <tr>
+                            <th>Parametr</th>
+                            <th>Wartość</th>
+                        </tr>
+                        <tr>
+                            <td>Operator</td>
+                            <td>{{ phone_data.phoneinfoga.carrier }}</td>
+                        </tr>
+                        <tr>
+                            <td>Kraj</td>
+                            <td>{{ phone_data.phoneinfoga.country }}</td>
+                        </tr>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if email_data %}
+            <div class="section">
+                <h2>Analiza adresu e-mail: {{ email_data.email }}</h2>
+                
+                {% if email_data.holehe %}
+                <div class="subsection">
+                    <h3>Wyniki Holehe</h3>
+                    <p>Znaleziono konta na {{ email_data.holehe.services|length }} serwisach:</p>
+                    <ul>
+                        {% for service in email_data.holehe.services %}
+                        <li class="found">{{ service }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if file_data %}
+            <div class="section">
+                <h2>Analiza pliku: {{ file_data.file_path }}</h2>
+                
+                {% if file_data.exiftool %}
+                <div class="subsection">
+                    <h3>Metadane (ExifTool)</h3>
+                    <div class="metadata">
+                        {% for key, value in file_data.exiftool.items() %}
+                        <div class="metadata-item">
+                            <span class="metadata-key">{{ key }}:</span> {{ value }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if ai_analysis %}
+            <div class="section">
+                <h2>Analiza AI</h2>
+                <div class="ai-analysis">
+                    <h3>Podsumowanie</h3>
+                    <p>{{ ai_analysis.summary }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </main>
+
+        <footer>
+            <p>OSINT Super Kombajn v{{ version }} | &copy; {{ year }} OSINT Super Kombajn</p>
+        </footer>
+    </div>
+</body>
+</html>

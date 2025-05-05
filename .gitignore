@@ -113,31 +113,13 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# IDE files
+# IDE settings
 .idea/
 .vscode/
 *.swp
 *.swo
-.DS_Store
 
-# OSINT Tool specific
-# Klucze API i dane uwierzytelniające
-*.key
-*_api_key.txt
-*_credentials.json
-api_keys.yaml
-config.local.yaml
-credentials/
-
-# Dane wyjściowe
+# Project specific
 results/
-reports/
 logs/
-*.tmp
-temp/
-
-# Zewnętrzne narzędzia (instalowane oddzielnie)
-tools/*/data/
-tools/*/output/
-external/
-vendor/
+.DS_Store

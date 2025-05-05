@@ -1,76 +1,23 @@
-import argparse
-import asyncio
+"""
+Główny punkt wejścia OSINT Super Kombajn.
+"""
 import sys
+import asyncio
+import argparse
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Any, Optional
 
-class OSINTSuite:
-    """
-    Główna klasa zarządzająca przepływem pracy OSINT Super Kombajn.
-
-    Attributes:
-        base_dir (Path): Katalog bazowy dla narzędzi OSINT
-        log_dir (Path): Katalog do przechowywania logów
-        results_dir (Path): Katalog wyjściowy dla wyników
-        config_file (Path): Ścieżka do pliku konfiguracyjnego
-        verbose (bool): Tryb szczegółowego logowania
-    """
-    
-    def __init__(
-        self,
-        base_dir: Optional[Path] = None,
-        log_dir: Optional[Path] = None,
-        results_dir: Optional[Path] = None,
-        config_file: Optional[Path] = None,
-        verbose: bool = False
-    ) -> None:
-        """
-        Inicjalizuje instancję OSINTSuite.
-
-        Args:
-            base_dir: Katalog bazowy dla narzędzi OSINT
-            log_dir: Katalog do przechowywania logów
-            results_dir: Katalog wyjściowy dla wyników
-            config_file: Ścieżka do pliku konfiguracyjnego
-            verbose: Tryb szczegółowego logowania
-        """
-        self.base_dir = base_dir or Path.cwd()
-        self.log_dir = log_dir or self.base_dir / "logs"
-        self.results_dir = results_dir or self.base_dir / "results"
-        self.config_file = config_file or self.base_dir / "configs" / "settings.yaml"
-        self.verbose = verbose
-        
-        # Upewnij się, że katalogi istnieją
-        self.log_dir.mkdir(parents=True, exist_ok=True)
-        self.results_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Tutaj można zainicjować logger i inne komponenty
-        if self.verbose:
-            print(f"Inicjalizacja OSINT Super Kombajn:")
-            print(f"Katalog bazowy: {self.base_dir}")
-            print(f"Katalog logów: {self.log_dir}")
-            print(f"Katalog wyników: {self.results_dir}")
-            print(f"Plik konfiguracyjny: {self.config_file}")
-    
-    async def main(self) -> int:
-        """
-        Główna metoda uruchamiająca operacje OSINT.
-        
-        Returns:
-            int: Kod wyjścia (0 dla sukcesu, wartość niezerowa dla błędów)
-        """
-        # Tutaj można dodać logikę głównej funkcjonalności
-        print("OSINT Super Kombajn - Uruchomiono pomyślnie")
-        print("Ten moduł zostanie rozbudowany o pełne funkcjonalności narzędzi OSINT")
-        return 0
-
+from osint_super_kombajn.core.engine import OSINTEngine
+from osint_super_kombajn.core.event_bus import event_bus
+from osint_super_kombajn.utils.validators import validate_email
+from osint_super_kombajn.config import config
 
 def parse_arguments() -> argparse.Namespace:
     """
-    Parsuje argumenty wiersza poleceń dla aplikacji.
+    Parsuje argumenty wiersza poleceń.
     
     Returns:
-        Namespace zawierający przetworzone argumenty
+        Sparsowane argumenty
     """
     parser = argparse.ArgumentParser(
         description="OSINT Super Kombajn - zbiór narzędzi do badań OSINT"
@@ -118,32 +65,80 @@ def parse_arguments() -> argparse.Namespace:
     
     return parser.parse_args()
 
-
 async def run_app() -> int:
     """
-    Główna funkcja uruchamiająca aplikację.
+    Główna funkcja aplikacji.
     
     Returns:
-        int: Kod wyjścia aplikacji
+        Kod wyjścia (0 dla sukcesu, wartość niezerowa dla błędów)
     """
     args = parse_arguments()
     
-    # Inicjalizacja głównej klasy aplikacji
-    suite = OSINTSuite(
-        config_file=Path(args.config) if args.config else None,
-        results_dir=Path(args.output_dir) if args.output_dir else None,
-        verbose=args.verbose
-    )
+    # Inicjalizacja silnika OSINT
+    engine = OSINTEngine()
+    
+    # Rejestracja zdarzeń
+    await event_bus.publish("app_start", {"args": vars(args)})
+    
+    results = {}
     
     try:
-        return await suite.main()
+        # Wykonaj analizy w zależności od podanych argumentów
+        if args.username:
+            print(f"Analizuję nazwę użytkownika: {args.username}")
+            results["username"] = await engine.analyze_username(args.username)
+            
+        if args.phone:
+            print(f"Analizuję numer telefonu: {args.phone}")
+            results["phone"] = await engine.analyze_phone(args.phone)
+            
+        if args.email:
+            if validate_email(args.email):
+                print(f"Analizuję adres e-mail: {args.email}")
+                results["email"] = await engine.analyze_email(args.email)
+            else:
+                print(f"Nieprawidłowy format adresu e-mail: {args.email}")
+                
+        if args.file:
+            file_path = Path(args.file)
+            if file_path.exists() and file_path.is_file():
+                print(f"Analizuję plik: {args.file}")
+                results["file"] = await engine.analyze_file(str(file_path))
+            else:
+                print(f"Plik nie istnieje lub nie jest plikiem: {args.file}")
+        
+        # Jeśli są jakieś wyniki, wykonaj analizę AI
+        if results and config["ai"]["enabled"]:
+            print("Wykonuję analizę AI zebranych danych...")
+            ai_results = await engine.run_ai_analysis(results)
+            results["ai_analysis"] = ai_results
+            
+        # Publikuj zdarzenie z wynikami
+        await event_bus.publish("analysis_complete", {"results": results})
+        
+        # Wyświetl podsumowanie
+        print("\nPodsumowanie analizy:")
+        for key, value in results.items():
+            if key != "ai_analysis":
+                print(f"- {key}: Znaleziono dane")
+        
+        if "ai_analysis" in results:
+            print("- Wykonano analizę AI")
+            
+        return 0
+        
     except KeyboardInterrupt:
         print("\nOperacja przerwana przez użytkownika")
-        return 130  # Standardowy kod wyjścia dla SIGINT
+        await event_bus.publish("app_interrupted", {})
+        return 130
+        
     except Exception as e:
         print(f"Błąd: {e}")
+        await event_bus.publish("app_error", {"error": str(e)})
         return 1
-
+        
+    finally:
+        await event_bus.publish("app_shutdown", {})
 
 def main() -> None:
     """
@@ -156,7 +151,6 @@ def main() -> None:
     # Uruchom funkcję główną i zakończ z odpowiednim kodem
     exit_code = asyncio.run(run_app())
     sys.exit(exit_code)
-
 
 if __name__ == "__main__":
     main()

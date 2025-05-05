@@ -1,0 +1,30 @@
+# Konfiguracja OSINT Super Kombajn
+
+tools:
+  sherlock:
+    path: ./tools/sherlock
+    timeout: 300
+  phoneinfoga:
+    path: ./tools/phoneinfoga
+    timeout: 120
+  maigret:
+    path: ./tools/maigret
+    timeout: 300
+  exiftool:
+    path: ./tools/exiftool
+    timeout: 60
+  holehe:
+    path: ./tools/holehe
+    timeout: 180
+
+output:
+  results_dir: ./results
+  log_dir: ./logs
+  log_level: INFO
+
+ai:
+  enabled: true
+  default_model: anthropic/claude-3-opus-20240229
+
+app:
+  debug: false
